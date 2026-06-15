@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: default
+  labels:
+    app: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one:1.53 # Standard all-in-one image
+        ports:
+        - containerPort: 16686 # Jaeger UI Port
+        - containerPort: 14250 # gRPC Collector Port (Matches your OTel config)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: default
+spec:
+  ports:
+  - name: grpc
+    port: 14250
+    targetPort: 14250
+  selector:
+    app: jaeger
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-ui
+  namespace: default
+spec:
+  type: NodePort # Allows you to open the UI outside the cluster
+  ports:
+  - name: http
+    port: 16686
+    targetPort: 16686
+    nodePort: 30686 # Access the UI via this port on your cluster IP
+  selector:
+    app: jaeger
