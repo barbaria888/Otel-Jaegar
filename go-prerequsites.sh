@@ -11,6 +11,6 @@ go get go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc@v1.24.0
 
 go mod tidy
 
+kubectl apply -f go-app-deployment.yaml
+kubectl apply -f jaegar-deployment.yaml
 
-docker build -t my-go-app:v1 .
-docker run my-go-app
