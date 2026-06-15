@@ -1,3 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: default
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+    processors:
+      batch:
+    exporters:
+      otlp: # CHANGED: Using native OTLP exporter instead of the removed jaeger type
+        endpoint: "jaeger-collector.default.svc.cluster.local:4317" # Pointing to Jaeger's OTLP gRPC port
+        insecure: true
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp] # CHANGED to match the exporter above
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,13 +48,27 @@ spec:
             cpu: 200m
             memory: 200Mi
         volumeMounts:
-        - name: config-volume   # Mounts the volume into the container filesystem
+        - name: collector-config-vol
           mountPath: /conf
         ports:
         - containerPort: 4317
-      
-      # 🚀 FIX: Add this missing block to declare the volume and link it to the ConfigMap
       volumes:
-      - name: config-volume
+      - name: collector-config-vol
         configMap:
           name: otel-collector-config
+          items:
+          - key: otel-collector-config.yaml
+            path: otel-collector-config.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opentelemetry-collector
+  namespace: default
+spec:
+  ports:
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+  selector:
+    app: opentelemetry-collector
