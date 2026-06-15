@@ -6,9 +6,8 @@
 </div>
 
 
-Welcome to the central documentation for the distributed observability stack. This README outlines the architecture, data flow, technical milestones, and post-mortem debugging logs for a production-grade tracing pipeline built from the ground up.
+> Welcome to the central documentation for the distributed observability stack. This README outlines the architecture, data flow, technical milestones, and post-mortem debugging logs for a production-grade tracing pipeline built from the ground up.
 
-This repository demonstrates a deep, practical understanding of modern cloud-native infrastructure, microservices latency tracking, and telemetry routing within a Kubernetes environment.
 
 ---
 
