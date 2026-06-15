@@ -1,6 +1,9 @@
 #  Cloud-Native Distributed Tracing Pipeline: Kubernetes + OpenTelemetry + Jaeger 
-
+<div>
 <img src="https://github.com/jaegertracing/artwork/blob/master/PNG/Jaeger_Logo_Final_WHITE.png" height="80">
+<img src="https://github.com/barbaria888/Otel-Jaegar/blob/main/images/OpenTelemetry.png" height="80">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain-wordmark.svg" height="90" alt="Kubernetes" /> 
+</div>
 
 
 Welcome to the central documentation for the distributed observability stack. This README outlines the architecture, data flow, technical milestones, and post-mortem debugging logs for a production-grade tracing pipeline built from the ground up.
@@ -54,6 +57,7 @@ graph TD
 ```
 
 ### Core Components
+<img src="https://github.com/barbaria888/Otel-Jaegar/blob/main/images/cluster-works.png">
 
 * **The Generator (`main.go` & `go-app-deployment.yaml`):** A custom Go application running on a continuous loop inside a Deployment. It generates structured parent and child trace spans (simulating database queries and API calls) and pushes them over the network via gRPC.
 * **The Router (`otel-collector.yaml`):** The OpenTelemetry data proxy (comprising a ConfigMap, Deployment, and Service). It catches the incoming traces from the Go app on port `4317`, batches them for performance, and forwards them using the standard OTLP protocol.
@@ -64,6 +68,16 @@ graph TD
 ## 🏆 Key Technical Milestones
 
 This architecture goes beyond standard deployments, wiring up a modern observability stack from absolute scratch.
+<img src="https://github.com/barbaria888/Otel-Jaegar/blob/main/images/jaegar-ui-worjs.png">
+
+---
+
+
+<img src="https://github.com/barbaria888/Otel-Jaegar/blob/main/images/SIMulation-span1.png">
+
+---
+
+<img src="https://github.com/barbaria888/Otel-Jaegar/blob/main/images/traces-walkthrough.gif">
 
 * **Mastered Distributed Context Propagation:** Transitioned from flat logging to true distributed tracing. The Go application captures a parent context (`transaction-root-process`) and passes it down into child functions (simulated DB and API calls), mirroring the exact pattern used in enterprise microservices to track system-wide latency.
 * **Provisioned an OpenTelemetry Gateway:** Successfully deployed the industry-standard OpenTelemetry Collector. Configured its internal pipeline (Receivers → Processors → Exporters) and successfully mapped its storage volumes via Kubernetes `ConfigMaps`.
@@ -98,5 +112,6 @@ A critical component of infrastructure engineering is resolving bottlenecks. Bel
 ### ❌ Error 4: Invalid TLS Configuration Syntax
 
 * **The Error:** `error reading configuration for "otlp"... '' has invalid keys: insecure`
+  <img src="https://github.com/barbaria888/Otel-Jaegar/blob/main/images/k-log-errors-otel-clctr.png">
 * **The Root Cause:** When transitioning to the new `otlp` exporter format, the `insecure: true` flag was placed directly under the endpoint. The `otlp` schema strictly requires security settings to be nested inside a dedicated `tls` block.
 * **The Resolution:** Re-indented the ConfigMap to place `insecure: true` as a child of a `tls:` block. Forcefully deleted the old ConfigMap and the crashing collector pod to trigger a restart and mount the newly validated configuration structure.
