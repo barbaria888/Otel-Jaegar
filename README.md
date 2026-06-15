@@ -1,4 +1,7 @@
-#  Cloud-Native Distributed Tracing Pipeline: Kubernetes + OpenTelemetry + Jaeger
+#  Cloud-Native Distributed Tracing Pipeline: Kubernetes + OpenTelemetry + Jaeger 
+
+<img src="https://github.com/jaegertracing/artwork/blob/master/PNG/Jaeger_Logo_Final_WHITE.png" height="80">
+
 
 Welcome to the central documentation for the distributed observability stack. This README outlines the architecture, data flow, technical milestones, and post-mortem debugging logs for a production-grade tracing pipeline built from the ground up.
 
