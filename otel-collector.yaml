@@ -12,15 +12,15 @@ data:
     processors:
       batch:
     exporters:
-      otlp: # CHANGED: Using native OTLP exporter instead of the removed jaeger type
-        endpoint: "jaeger-collector.default.svc.cluster.local:4317" # Pointing to Jaeger's OTLP gRPC port
+      otlp:
+        endpoint: "jaeger-collector.default.svc.cluster.local:4317"
         insecure: true
     service:
       pipelines:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp] # CHANGED to match the exporter above
+          exporters: [otlp]
 ---
 apiVersion: apps/v1
 kind: Deployment
