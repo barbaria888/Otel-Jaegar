@@ -14,6 +14,8 @@ This repository demonstrates a deep, practical understanding of modern cloud-nat
 
 ## 🏗️ Architecture Overview
 
+<img src="https://github.com/barbaria888/Otel-Jaegar/blob/main/images/otlpgpt-architecture.png">
+
 The pipeline consists of three core components working in tandem inside the Kubernetes cluster to generate, route, and visualize telemetry data in real-time.
 
 ```mermaid
