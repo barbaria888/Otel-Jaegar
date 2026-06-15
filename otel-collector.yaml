@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: default
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc: # Opens port 4317 for your Go app
+    processors:
+      batch: # Enhances processing performance before exporting
+    exporters:
+      jaeger:
+        endpoint: "jaeger-collector.default.svc.cluster.local:14250" # Hands traces off to Jaeger
+        insecure: true
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [jaeger]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opentelemetry-collector
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opentelemetry-collector
+  template:
+    metadata:
+      labels:
+        app: opentelemetry-collector
+    spec:
+      containers:
+      - name: otel-collector
+        image: otel/opentelemetry-collector:0.95.0
+        command:
+        - "/otelcol"
+        - "--config=/conf/otel-collector-config.yaml"
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+        volumeMounts:
+        - name: config-volume
+          mountPath: /conf
+        ports:
+        - containerPort: 4317
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opentelemetry-collector
+  namespace: default
+spec:
+  ports:
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+  selector:
+    app: opentelemetry-collector
