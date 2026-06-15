@@ -11,13 +11,14 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
+// initTracer initializes the OpenTelemetry SDK and configures the OTLP gRPC exporter
 func initTracer() (*sdktrace.TracerProvider, error) {
 	ctx := context.Background()
 
-	// Configure the exporter to point to the local OTel Collector
-	// Inside K8s, this points to your OTel collector service
+	// Configure the exporter to point to the local OpenTelemetry Collector service in K8s
 	exporter, err := otlptracegrpc.New(ctx,
 		otlptracegrpc.WithInsecure(),
 		otlptracegrpc.WithEndpoint("opentelemetry-collector.default.svc.cluster.local:4317"),
@@ -26,8 +27,9 @@ func initTracer() (*sdktrace.TracerProvider, error) {
 		return nil, err
 	}
 
+	// Build the Tracer Provider with a batch processing architecture
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithSampler(sdktrace.AlwaysSample()), // Capture 100% of traces for the lab
 		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
@@ -39,6 +41,7 @@ func initTracer() (*sdktrace.TracerProvider, error) {
 }
 
 func main() {
+	// Initialize the pipeline
 	tp, err := initTracer()
 	if err != nil {
 		log.Fatalf("failed to initialize tracer: %v", err)
@@ -51,11 +54,43 @@ func main() {
 
 	tracer := otel.Tracer("my-tracer")
 
-	// Fixed: Replaced 'ctx' with '_' to avoid the "declared and not used" compile failure
-	_, span := tracer.Start(context.Background(), "simulation-span")
-	defer span.End()
+	fmt.Println("Starting continuous trace generator loop...")
 
-	fmt.Println("Application is doing heavy work inside Kubernetes...")
-	time.Sleep(500 * time.Millisecond)
-	fmt.Println("Work done! Trace sent.")
+	// Infinite loop generating structured telemetry data every 2 seconds
+	for {
+		// Create the parent root trace span
+		loopCtx, parentSpan := tracer.Start(context.Background(), "transaction-root-process")
+		fmt.Println("\n--- New Transaction Started ---")
+		fmt.Println("Processing root execution logic...")
+		time.Sleep(100 * time.Millisecond) 
+
+		// Call sub-operations passing the 'loopCtx' to link spans together
+		simulateDatabaseQuery(loopCtx, tracer)
+		simulateExternalAPICall(loopCtx, tracer)
+
+		// Finish the parent span execution lifecycle
+		parentSpan.End()
+		fmt.Println("Trace hierarchy successfully dispatched to OTel Collector.")
+
+		// Cool down window before triggering the next continuous sequence
+		time.Sleep(2 * time.Second)
+	}
+}
+
+// simulateDatabaseQuery represents an internal relational call linked to the parent context
+func simulateDatabaseQuery(ctx context.Context, tracer trace.Tracer) {
+	_, childSpan := tracer.Start(ctx, "SELECT * FROM orders_cache")
+	defer childSpan.End()
+
+	fmt.Println("Executing database dependency query...")
+	time.Sleep(250 * time.Millisecond) // Simulating query latency
+}
+
+// simulateExternalAPICall represents a network call dependency linked to the parent context
+func simulateExternalAPICall(ctx context.Context, tracer trace.Tracer) {
+	_, childSpan := tracer.Start(ctx, "HTTP POST /v1/payments/charge")
+	defer childSpan.End()
+
+	fmt.Println("Calling external payment gateway API...")
+	time.Sleep(150 * time.Millisecond) // Simulating round-trip latency
 }
