@@ -14,7 +14,8 @@ data:
     exporters:
       otlp:
         endpoint: "jaeger-collector.default.svc.cluster.local:4317"
-        insecure: true
+        tls:
+          insecure: true
     service:
       pipelines:
         traces:
