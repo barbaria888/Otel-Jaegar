@@ -51,8 +51,8 @@ func main() {
 
 	tracer := otel.Tracer("my-tracer")
 
-	// Start a trace span
-	ctx, span := tracer.Start(context.Background(), "simulation-span")
+	// Fixed: Replaced 'ctx' with '_' to avoid the "declared and not used" compile failure
+	_, span := tracer.Start(context.Background(), "simulation-span")
 	defer span.End()
 
 	fmt.Println("Application is doing heavy work inside Kubernetes...")
