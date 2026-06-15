@@ -17,10 +17,11 @@ spec:
     spec:
       containers:
       - name: jaeger
-        image: jaegertracing/all-in-one:1.53 # Standard all-in-one image
+        image: jaegertracing/all-in-one:1.53 
         ports:
         - containerPort: 16686 # Jaeger UI Port
-        - containerPort: 14250 # gRPC Collector Port (Matches your OTel config)
+        - containerPort: 14250 # Legacy Jaeger gRPC Collector Port
+        - containerPort: 4317  # 🚀 ADDED: Native OTLP gRPC Receiver Port
 ---
 apiVersion: v1
 kind: Service
@@ -32,6 +33,9 @@ spec:
   - name: grpc
     port: 14250
     targetPort: 14250
+  - name: otlp-grpc       #  ADDED: Routes OTLP traffic from OTel Collector
+    port: 4317
+    targetPort: 4317
   selector:
     app: jaeger
 ---
@@ -41,11 +45,11 @@ metadata:
   name: jaeger-ui
   namespace: default
 spec:
-  type: NodePort # Allows you to open the UI outside the cluster
+  type: NodePort 
   ports:
   - name: http
     port: 16686
     targetPort: 16686
-    nodePort: 30686 # Access the UI via this port on your cluster IP
+    nodePort: 30686 
   selector:
     app: jaeger
