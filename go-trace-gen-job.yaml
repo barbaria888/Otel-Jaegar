@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: go-trace-generator
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+      - name: trace-app
+        image: my-go-app:v1 # Use the image built in Step 3
+        imagePullPolicy: Never # Use local image if using Minikube/Kind
+      restartPolicy: Never
+  backoffLimit: 1
